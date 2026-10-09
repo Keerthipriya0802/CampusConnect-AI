@@ -8,7 +8,7 @@ const connectDB = async () => {
   }
 
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/campusconnect', {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/campusconnect', {
       autoIndex: true,
       serverSelectionTimeoutMS: 3000,
       socketTimeoutMS: 3000,
@@ -17,7 +17,7 @@ const connectDB = async () => {
     console.log(`MongoDB connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.warn('MongoDB not available, continuing with demo auth fallback:', error.message);
+    console.warn('MongoDB connection failed:', error.message);
     return null;
   }
 };

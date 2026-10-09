@@ -1,71 +1,17 @@
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const User = require('../models/User');
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
-
-const demoUsers = [
-  { name: 'student', email: 'student123@gmail.com', password: 'student123', role: 'student' },
-  { name: 'coordinator', email: 'coordinator123@gmail.com', password: 'coordinator123', role: 'coordinator' },
-];
-
-exports.register = async (req, res, next) => {
-  try {
-    const { name, email, password, role, phone, department } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    const user = await User.create({ name, email, password, role, phone, department });
-    res.status(201).json({
-      token: generateToken(user._id),
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const generateToken = (id, user) => jwt.sign({
+  id,
+  ...(user ? { name: user.name, email: user.email, role: user.role } : {}),
+}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const normalizedEmail = (email || '').toLowerCase();
 
-    const demoUser = demoUsers.find((user) => user.email.toLowerCase() === normalizedEmail);
-
-    let existingUser = null;
-    try {
-      if (mongoose.connection.readyState === 1) {
-        existingUser = await User.findOne({ email: normalizedEmail });
-      }
-    } catch (error) {
-      existingUser = null;
-    }
-
-    if (demoUser && demoUser.password === password) {
-      const userRecord = existingUser || (await User.create({ ...demoUser }).catch(() => null));
-      const id = userRecord ? userRecord._id : demoUser.email;
-      const name = userRecord ? userRecord.name : demoUser.name;
-      const role = userRecord ? userRecord.role : demoUser.role;
-      return res.json({
-        token: generateToken(id),
-        user: {
-          id,
-          name,
-          email: demoUser.email,
-          role,
-        },
-      });
-    }
-
-    const user = existingUser;
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: 'Invalid email or password' });
@@ -81,6 +27,41 @@ exports.login = async (req, res, next) => {
       },
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+exports.register = async (req, res, next) => {
+  try {
+    const name = (req.body.name || '').trim();
+    const email = (req.body.email || '').trim().toLowerCase();
+    const password = req.body.password || '';
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ message: 'Enter a valid email address' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const user = await User.create({ name, email, password, role: 'student' });
+
+    res.status(201).json({
+      token: generateToken(user._id),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'An account with this email already exists' });
+    }
     next(error);
   }
 };

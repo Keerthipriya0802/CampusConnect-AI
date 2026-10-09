@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ArrowRight, Check, LockKeyhole, Mail, Sparkles } from 'lucide-react';
 import api from '../services/api';
+import './LoginPage.css';
 
 export default function LoginPage({ setUser }) {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -20,25 +22,45 @@ export default function LoginPage({ setUser }) {
     }
   };
 
+  const autofillDemo = () => {
+    setForm({ email: 'demo.coordinator@campusconnect.ai', password: 'DemoCoordinator@123' });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/70">
-        <h2 className="text-2xl font-semibold text-slate-900">Welcome back</h2>
-        <p className="mt-2 text-sm text-slate-600">Sign in to continue to CampusConnect AI.</p>
-
-        <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
-          <p className="font-semibold">Test login credentials</p>
-          <p className="mt-1">Student: student123@gmail.com / student123</p>
-          <p>Coordinator: coordinator123@gmail.com / coordinator123</p>
+    <div className="login-page">
+      <div className="login-showcase">
+        <div className="login-brand"><span className="login-brand-mark"><Sparkles size={17} /></span><span>CampusConnect <strong>AI</strong></span></div>
+        <div className="login-showcase-copy">
+          <p className="login-kicker">Your next opportunity starts here</p>
+          <h1>Make your<br /><em>next move</em> count.</h1>
+          <p className="login-showcase-text">A smarter way for students and coordinators to connect, prepare, and move careers forward.</p>
         </div>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <input className="w-full rounded-xl border border-slate-300 px-3 py-2" type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-          <input className="w-full rounded-xl border border-slate-300 px-3 py-2" type="password" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-          <button className="w-full rounded-xl bg-blue-600 px-4 py-2 font-medium text-white" type="submit">Login</button>
-        </form>
-        <p className="mt-4 text-sm text-slate-600">Don’t have an account? <Link to="/register" className="font-semibold text-blue-600">Create one</Link></p>
+        <div className="login-proof"><span className="login-proof-icon"><Check size={15} /></span><span>One focused space for every placement milestone</span></div>
+        <div className="login-showcase-shape login-showcase-shape-one" />
+        <div className="login-showcase-shape login-showcase-shape-two" />
       </div>
+
+      <main className="login-panel">
+        <div className="login-form-wrap">
+          <div className="login-mobile-brand"><span className="login-brand-mark"><Sparkles size={16} /></span>CampusConnect <strong>AI</strong></div>
+          <div className="login-heading">
+            <span className="login-eyebrow">Member sign in</span>
+            <h2>Welcome back<span>.</span></h2>
+            <p>Sign in to pick up where you left off.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="login-form">
+            <label htmlFor="login-email">Email address</label>
+            <div className="login-input-wrap"><Mail size={18} /><input id="login-email" type="email" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></div>
+            <label htmlFor="login-password">Password</label>
+            <div className="login-input-wrap"><LockKeyhole size={18} /><input id="login-password" type="password" placeholder="Enter your password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></div>
+            <button className="login-submit" type="submit">Sign in <ArrowRight size={18} /></button>
+          </form>
+          <button className="login-demo-button" type="button" onClick={autofillDemo}>Coordinator</button>
+          <p className="login-register">New student? <Link to="/register">Create an account</Link></p>
+        </div>
+        <p className="login-footer">(c) 2025 CampusConnect AI <span>|</span> Built for brighter careers</p>
+      </main>
     </div>
   );
 }

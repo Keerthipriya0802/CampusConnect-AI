@@ -6,29 +6,11 @@ const seedUsers = async () => {
     if (mongoose.connection.readyState !== 1) {
       return;
     }
-    const demoUsers = [
-      {
-        name: 'student',
-        email: 'student123@gmail.com',
-        password: 'student123',
-        role: 'student',
-      },
-      {
-        name: 'coordinator',
-        email: 'coordinator123@gmail.com',
-        password: 'coordinator123',
-        role: 'coordinator',
-      },
-    ];
-
-    for (const userData of demoUsers) {
-      const existingUser = await User.findOne({ email: userData.email });
-
-      if (!existingUser) {
-        await User.create(userData);
-        console.log(`Seeded demo user: ${userData.email}`);
-      }
-    }
+    const email = process.env.COORDINATOR_EMAIL;
+    const password = process.env.COORDINATOR_PASSWORD;
+    if (!email || !password) return;
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (!existingUser) await User.create({ name: process.env.COORDINATOR_NAME || 'Placement Coordinator', email, password, role: 'coordinator' });
   } catch (error) {
     console.warn('Demo user seeding skipped:', error.message);
   }

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { LayoutDashboard, Briefcase, FileText, MessageSquareText, BarChart3, Settings, LogOut, UserCircle2, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Briefcase, FileText, MessageSquareText, BarChart3, Settings, LogOut, UserCircle2, Sparkles, Users } from 'lucide-react';
 import api from './services/api';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -12,11 +12,14 @@ import DrivesPage from './pages/DrivesPage';
 import DriveDetailsPage from './pages/DriveDetailsPage';
 import ProfilePage from './pages/ProfilePage';
 import OfferLettersPage from './pages/OfferLettersPage';
+import ApplicationsPage from './pages/ApplicationsPage';
 import AIChatPage from './pages/AIChatPage';
 import InterviewPrepPage from './pages/InterviewPrepPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 import CoordinatorProfilePage from './pages/CoordinatorProfilePage';
+import StudentManagementPage from './pages/StudentManagementPage';
+import PlacementTrackingPage from './pages/PlacementTrackingPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -53,14 +56,14 @@ function App() {
   const isCoordinator = user?.role === 'coordinator' || user?.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="app-shell min-h-screen text-slate-800">
       {!user && location.pathname !== '/' && location.pathname !== '/login' && location.pathname !== '/register' ? (
         <Navigate to="/" replace />
       ) : null}
 
       {user ? (
         <div className="flex min-h-screen flex-col lg:flex-row">
-          <aside className="w-full lg:w-72 border-r border-slate-200 bg-slate-950 text-white p-6">
+          <aside className="app-sidebar w-full lg:w-72 border-r text-white p-6">
             <div className="flex items-center gap-3 mb-8">
               <div className="rounded-2xl bg-blue-600 p-2"><Sparkles size={20} /></div>
               <div>
@@ -82,8 +85,10 @@ function App() {
               ) : (
                 <>
                   <NavLink to="/coordinator-dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" />
-                  <NavLink to="/drives" icon={<Briefcase size={18} />} label="Drives" />
+                  <NavLink to="/student-management" icon={<Users size={18} />} label="Student Management" />
+                  <NavLink to="/drives" icon={<Briefcase size={18} />} label="Placement Drives" />
                   <NavLink to="/analytics" icon={<BarChart3 size={18} />} label="Analytics" />
+                  <NavLink to="/placement-tracking" icon={<BarChart3 size={18} />} label="Placement Tracking" />
                   <NavLink to="/offer-letters" icon={<FileText size={18} />} label="Offer Letters" />
                   <NavLink to="/coordinator-profile" icon={<UserCircle2 size={18} />} label="Coordinator Profile" />
                   <NavLink to="/ai-chat" icon={<MessageSquareText size={18} />} label="AI Assistant" />
@@ -97,18 +102,21 @@ function App() {
             </button>
           </aside>
 
-          <main className="flex-1 p-6 lg:p-8">
+          <main className="app-main flex-1 p-6 lg:p-8">
             <Routes>
               <Route path="/student-dashboard" element={isStudent ? <StudentDashboard user={user} /> : <Navigate to="/coordinator-dashboard" replace />} />
               <Route path="/coordinator-dashboard" element={isCoordinator ? <CoordinatorDashboard user={user} /> : <Navigate to="/student-dashboard" replace />} />
+              <Route path="/student-management" element={isCoordinator ? <StudentManagementPage /> : <Navigate to="/student-dashboard" replace />} />
               <Route path="/drives" element={<DrivesPage user={user} />} />
               <Route path="/drives/:id" element={<DriveDetailsPage user={user} />} />
               <Route path="/profile" element={isStudent ? <ProfilePage user={user} /> : <Navigate to="/coordinator-dashboard" replace />} />
               <Route path="/offer-letters" element={<OfferLettersPage user={user} />} />
+              <Route path="/applications" element={<ApplicationsPage />} />
               <Route path="/coordinator-profile" element={isCoordinator ? <CoordinatorProfilePage user={user} /> : <Navigate to="/student-dashboard" replace />} />
               <Route path="/ai-chat" element={<AIChatPage user={user} />} />
               <Route path="/interview-prep" element={isStudent ? <InterviewPrepPage user={user} /> : <Navigate to="/coordinator-dashboard" replace />} />
               <Route path="/analytics" element={isCoordinator ? <AnalyticsPage user={user} /> : <Navigate to="/student-dashboard" replace />} />
+              <Route path="/placement-tracking" element={isCoordinator ? <PlacementTrackingPage user={user} /> : <Navigate to="/student-dashboard" replace />} />
               <Route path="/settings" element={isCoordinator ? <SettingsPage user={user} /> : <Navigate to="/student-dashboard" replace />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

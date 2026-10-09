@@ -1,24 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
-import { toast } from 'react-toastify';
+import PlacementApplicationForm from '../components/PlacementApplicationForm';
 
 export default function DriveDetailsPage({ user }) {
   const { id } = useParams();
   const [drive, setDrive] = useState(null);
+  const [showApplication, setShowApplication] = useState(false);
 
   useEffect(() => {
     api.get(`/drives/${id}`).then((res) => setDrive(res.data)).catch(() => setDrive(null));
   }, [id]);
-
-  const apply = async () => {
-    try {
-      await api.post(`/drives/${id}/apply`, { resume: 'resume-link' });
-      toast.success('Applied successfully');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Could not apply');
-    }
-  };
 
   if (!drive) return <div className="rounded-3xl bg-white p-6 shadow-sm">Loading...</div>;
 
@@ -38,9 +30,10 @@ export default function DriveDetailsPage({ user }) {
           <Info label="Deadline" value={new Date(drive.deadline).toLocaleDateString()} />
         </div>
         {user?.role === 'student' ? (
-          <button onClick={apply} className="rounded-full bg-blue-600 px-4 py-2 text-white">Apply Now</button>
+          <button onClick={() => setShowApplication(true)} disabled={drive.applicationStatus === 'Applied'} className="rounded-full bg-blue-600 px-4 py-2 text-white disabled:bg-slate-300">{drive.applicationStatus ? drive.applicationStatus : 'Apply Now'}</button>
         ) : null}
       </div>
+      {showApplication ? <PlacementApplicationForm drive={drive} onClose={() => setShowApplication(false)} onSubmitted={() => setDrive({ ...drive, applicationStatus: 'Applied' })} /> : null}
     </div>
   );
 }

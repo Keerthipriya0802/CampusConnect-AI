@@ -59,8 +59,9 @@ exports.exportEligibleStudents = async (req, res, next) => {
     const profiles = await StudentProfile.find();
     const eligibleProfiles = profiles.filter((profile) => {
       const cgpaOk = (profile.cgpa || 0) >= (drive.cgpaRequirement || 0);
+      const arrearsOk = (profile.arrears || 0) === 0;
       const deptOk = !drive.allowedDepartments?.length || drive.allowedDepartments.includes(profile.department);
-      return cgpaOk && deptOk;
+      return cgpaOk && arrearsOk && deptOk;
     });
 
     const workbook = new ExcelJS.Workbook();

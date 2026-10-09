@@ -1,0 +1,23 @@
+.landing-page { background: #f7f8f6; color: #17221e; font-family: Inter, system-ui, sans-serif; }
+.landing-page header { color: #294239; }
+.landing-page header > div:first-child { display: flex; align-items: center; }
+.landing-brand-mark { background: #d4ef72; color: #173d35; }
+.landing-page header strong { color: #71943a; }
+.landing-page header .text-sm { color: #829089; }
+.landing-login { border: 1px solid #d5e0d8; color: #416158; }
+.landing-login:hover, .landing-secondary:hover { border-color: #7b9e46; }
+.landing-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #173d35; color: #fff; transition: transform .2s, background .2s; }
+.landing-primary:hover { background: #285c4e; transform: translateY(-1px); }
+.landing-hero { position: relative; z-index: 1; padding: 70px 0 100px; }
+.landing-kicker { border: 1px solid #d1e6a0; background: #f0f6df; color: #58752d; }
+.landing-hero h1 { max-width: 680px; color: #173d35; font-size: clamp(48px, 7vw, 88px); letter-spacing: -.07em; line-height: .98; }
+.landing-hero h1 em { color: #739536; font-family: Georgia, serif; font-weight: 400; }
+.landing-hero p { color: #718078; line-height: 1.7; }
+.landing-secondary { display: inline-flex; align-items: center; border: 1px solid #d5e0d8; color: #416158; }
+.landing-feature-panel { position: relative; overflow: hidden; background: #173d35; box-shadow: 0 24px 50px rgba(23,61,53,.16); }
+.landing-feature-panel::before { content: ''; position: absolute; width: 330px; height: 330px; right: -180px; top: 65px; border: 1px solid rgba(212,239,114,.2); border-radius: 50%; }
+.landing-feature { position: relative; z-index: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
+.landing-feature div { color: #d4ef72; font-weight: 700; }
+.landing-feature p { color: #b9d0c8; line-height: 1.6; }
+@media (max-width: 1024px) { .landing-hero { padding: 30px 0 15px; } }
+@media (max-width: 640px) { .landing-page header { padding-top: 22px; } .landing-page header .text-sm { display: none; } .landing-hero h1 { font-size: 52px; } }

@@ -12,13 +12,11 @@ const authRoutes = require('./src/routes/authRoutes');
 const driveRoutes = require('./src/routes/driveRoutes');
 const aiRoutes = require('./src/routes/aiRoutes');
 const materialRoutes = require('./src/routes/materialRoutes');
+const studentRoutes = require('./src/routes/studentRoutes');
+const coordinatorRoutes = require('./src/routes/coordinatorRoutes');
+const applicationRoutes = require('./src/routes/applicationRoutes');
 const seedUsers = require('./src/utils/seedUsers');
 const seedData = require('./src/utils/seedData');
-
-connectDB().then(async () => {
-  await seedUsers();
-  await seedData();
-});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,7 +34,21 @@ app.use('/api/auth', authRoutes);
 app.use('/api/drives', driveRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/materials', materialRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/coordinator', coordinatorRoutes);
+app.use('/api/applications', applicationRoutes);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const startServer = async () => {
+  const connection = await connectDB();
+  if (!connection) throw new Error('MongoDB connection is required before starting the API');
+  await seedUsers();
+  await seedData();
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+};
+
+startServer().catch((error) => {
+  console.error('Server startup failed:', error.message);
+  process.exit(1);
+});
