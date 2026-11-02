@@ -15,6 +15,7 @@ const materialRoutes = require('./src/routes/materialRoutes');
 const studentRoutes = require('./src/routes/studentRoutes');
 const coordinatorRoutes = require('./src/routes/coordinatorRoutes');
 const applicationRoutes = require('./src/routes/applicationRoutes');
+const sharedInfoRoutes = require('./src/routes/sharedInfoRoutes');
 const seedUsers = require('./src/utils/seedUsers');
 const seedData = require('./src/utils/seedData');
 
@@ -37,6 +38,7 @@ app.use('/api/materials', materialRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/coordinator', coordinatorRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/shared', sharedInfoRoutes);
 
 app.use(errorHandler);
 

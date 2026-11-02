@@ -7,6 +7,9 @@ const { listStudents, createStudent, updateStudent, deleteStudent, resetStudentP
 const User = require('../models/User');
 const Placement = require('../models/Placement');
 const OfferLetter = require('../models/OfferLetter');
+const Drive = require('../models/Drive');
+const StudentProfile = require('../models/StudentProfile');
+const isEligible = require('../utils/placementEligibility');
 
 const router = express.Router();
 
@@ -48,7 +51,7 @@ router.put('/change-password', async (req, res, next) => {
 router.get('/students', listStudents);
 router.get('/dashboard-stats', async (req, res, next) => {
   try {
-    const [totalStudents, placements, offerLetters, applications] = await Promise.all([
+    const [totalStudents, placements, offerLetters, applications, openDrives, studentProfiles] = await Promise.all([
       User.countDocuments({ role: 'student' }),
       Placement.find({ status: 'Placed' }),
       OfferLetter.find({ status: 'Received' }),
@@ -57,6 +60,8 @@ router.get('/dashboard-stats', async (req, res, next) => {
         { $lookup: { from: 'applications', localField: '_id', foreignField: 'student', as: 'apps' } },
         { $project: { totalApplications: { $size: '$apps' } } },
       ]),
+      Drive.find({ status: 'open' }).lean(),
+      StudentProfile.find().lean(),
     ]);
     const totalApplications = applications.reduce((sum, item) => sum + (item.totalApplications || 0), 0);
     const placedStudents = placements.length;
@@ -64,15 +69,26 @@ router.get('/dashboard-stats', async (req, res, next) => {
     const totalNotPlaced = Math.max(totalStudents - totalPlaced, 0);
     const offerLettersReceived = offerLetters.length;
     const offerLettersPending = Math.max(totalPlaced - offerLettersReceived, 0);
+    const driveEligibilitySummary = openDrives
+      .map((drive) => ({
+        _id: drive._id,
+        company: drive.company,
+        role: drive.role || drive.title,
+        eligibleCount: studentProfiles.filter((profile) => isEligible(profile, drive)).length,
+      }))
+      .sort((a, b) => b.eligibleCount - a.eligibleCount);
+    const wiproEligibleCount = driveEligibilitySummary.find((item) => item.company && item.company.toLowerCase() === 'wipro')?.eligibleCount || 0;
     res.json({
       totalStudents,
-      activePlacementDrives: 0,
+      activePlacementDrives: openDrives.length,
       totalApplications,
       studentsPlaced: totalPlaced,
       studentsNotPlaced: totalNotPlaced,
       offerLettersReceived,
       offerLettersPending,
       placementRate: totalStudents ? Number(((totalPlaced / totalStudents) * 100).toFixed(2)) : 0,
+      wiproEligibleCount,
+      driveEligibilitySummary,
     });
   } catch (error) {
     next(error);

@@ -5,6 +5,11 @@ import { ArrowRight, Check, LockKeyhole, Mail, Sparkles } from 'lucide-react';
 import api from '../services/api';
 import './LoginPage.css';
 
+const demoAccounts = [
+  { label: 'Coordinator', email: 'demo.coordinator@campusconnect.ai', password: 'DemoCoordinator@123' },
+  { label: 'Testing login', email: 'keerthipriya.it@bitsathy.ac.in', password: 'keerthi' },
+];
+
 export default function LoginPage({ setUser }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const navigate = useNavigate();
@@ -22,8 +27,8 @@ export default function LoginPage({ setUser }) {
     }
   };
 
-  const autofillDemo = () => {
-    setForm({ email: 'demo.coordinator@campusconnect.ai', password: 'DemoCoordinator@123' });
+  const autofillDemo = (account) => {
+    setForm({ email: account.email, password: account.password });
   };
 
   return (
@@ -49,6 +54,23 @@ export default function LoginPage({ setUser }) {
             <p>Sign in to pick up where you left off.</p>
           </div>
 
+          <div className="login-demo">
+            <div>
+              <div className="login-demo-icon"><Sparkles size={14} /></div>
+              <div>
+                <strong>Quick test access</strong>
+                <small>Use one of the ready-made accounts</small>
+              </div>
+            </div>
+            <div className="login-demo-actions">
+              {demoAccounts.map((account) => (
+                <button key={account.label} type="button" onClick={() => autofillDemo(account)}>
+                  {account.label} <ArrowRight size={12} />
+                </button>
+              ))}
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="login-form">
             <label htmlFor="login-email">Email address</label>
             <div className="login-input-wrap"><Mail size={18} /><input id="login-email" type="email" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></div>
@@ -56,7 +78,6 @@ export default function LoginPage({ setUser }) {
             <div className="login-input-wrap"><LockKeyhole size={18} /><input id="login-password" type="password" placeholder="Enter your password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></div>
             <button className="login-submit" type="submit">Sign in <ArrowRight size={18} /></button>
           </form>
-          <button className="login-demo-button" type="button" onClick={autofillDemo}>Coordinator</button>
           <p className="login-register">New student? <Link to="/register">Create an account</Link></p>
         </div>
         <p className="login-footer">(c) 2025 CampusConnect AI <span>|</span> Built for brighter careers</p>

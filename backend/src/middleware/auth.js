@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 
 const protect = async (req, res, next) => {
@@ -14,11 +15,17 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password').catch(() => null);
+    const userId = decoded?.id ? String(decoded.id) : '';
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({ message: 'Not authorized, invalid user token' });
+    }
+
+    req.user = await User.findById(userId).select('-password').catch(() => null);
     if (!req.user && decoded.email && decoded.role) {
       req.user = {
-        _id: decoded.id,
-        id: decoded.id,
+        _id: userId,
+        id: userId,
         name: decoded.name,
         email: decoded.email,
         role: decoded.role,

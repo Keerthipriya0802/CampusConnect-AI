@@ -30,10 +30,9 @@ export default function StudentDashboard({ user }) {
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiAnswer, setAiAnswer] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [sharedExperiences] = useState([
-    { drive: 'Infosys - SDE', note: 'Focus on DSA, React fundamentals, and communication.' },
-    { drive: 'TCS NQT', note: 'Prepare for reasoning, coding basics, and verbal ability.' },
-  ]);
+  const [sharedExperiences, setSharedExperiences] = useState([]);
+  const [companyDetails, setCompanyDetails] = useState([]);
+  const [experienceForm, setExperienceForm] = useState({ company: '', role: '', note: '' });
 
   useEffect(() => {
     Promise.allSettled([
@@ -43,13 +42,17 @@ export default function StudentDashboard({ user }) {
       api.get('/students/my-placement'),
       api.get('/students/higher-package-drives'),
       api.get('/students/profile'),
-    ]).then(([driveResult, materialResult, applicationResult, placementResult, higherDrivesResult, profileResult]) => {
+      api.get('/shared/interview-experiences'),
+      api.get('/shared/company-details'),
+    ]).then(([driveResult, materialResult, applicationResult, placementResult, higherDrivesResult, profileResult, experienceResult, companyResult]) => {
       setDrives(driveResult.status === 'fulfilled' ? (driveResult.value.data || []) : []);
       setMaterials(materialResult.status === 'fulfilled' ? (materialResult.value.data || []) : []);
       setApplications(applicationResult.status === 'fulfilled' ? (applicationResult.value.data || []) : []);
       setPlacement(placementResult.status === 'fulfilled' ? (placementResult.value.data || null) : null);
       setHigherPackageDrives(higherDrivesResult.status === 'fulfilled' ? (higherDrivesResult.value.data || []) : []);
       setStudentProfile(profileResult.status === 'fulfilled' ? profileResult.value.data : null);
+      setSharedExperiences(experienceResult.status === 'fulfilled' ? (experienceResult.value.data || []) : []);
+      setCompanyDetails(companyResult.status === 'fulfilled' ? (companyResult.value.data || []) : []);
     });
   }, []);
 
@@ -96,6 +99,11 @@ export default function StudentDashboard({ user }) {
       detail: `Apply by ${formatDate(drive.deadline)}.`,
       type: 'Deadline',
     })),
+    ...companyDetails.slice(0, 2).map((company) => ({
+      title: `New company added: ${company.company}`,
+      detail: company.role ? `${company.role} • ${company.package || 'Package pending'}` : 'Company details are now available for review.',
+      type: 'New Company',
+    })),
     {
       title: upcomingInterviews[0] ? `${upcomingInterviews[0].company} interview scheduled` : 'New interview updates',
       detail: upcomingInterviews[0]
@@ -103,7 +111,7 @@ export default function StudentDashboard({ user }) {
         : 'Check your schedule for the latest updates.',
       type: 'Interview',
     },
-  ];
+  ].slice(0, 5);
 
   const handleAskAI = async () => {
     if (!aiQuestion.trim()) return;
@@ -115,6 +123,22 @@ export default function StudentDashboard({ user }) {
       setAiAnswer(error.response?.data?.message || 'The assistant is temporarily unavailable.');
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const handleSubmitExperience = async () => {
+    if (!experienceForm.company.trim() || !experienceForm.note.trim()) return;
+    try {
+      const response = await api.post('/shared/interview-experiences', {
+        company: experienceForm.company,
+        role: experienceForm.role,
+        note: experienceForm.note,
+      });
+      setSharedExperiences((current) => [response.data, ...current]);
+      setExperienceForm({ company: '', role: '', note: '' });
+      setSubmittedExperience(response.data.note);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Unable to share interview experience.');
     }
   };
 
@@ -349,17 +373,47 @@ export default function StudentDashboard({ user }) {
           <h2 className="text-lg font-semibold">Share your interview experience</h2>
         </div>
         <p className="mt-2 text-sm text-slate-600">After each round, share what happened so coordinators can guide you better.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <input
+            className="rounded-2xl border border-slate-300 px-3 py-2"
+            placeholder="Company name"
+            value={experienceForm.company}
+            onChange={(e) => setExperienceForm((current) => ({ ...current, company: e.target.value }))}
+          />
+          <input
+            className="rounded-2xl border border-slate-300 px-3 py-2"
+            placeholder="Role / round"
+            value={experienceForm.role}
+            onChange={(e) => setExperienceForm((current) => ({ ...current, role: e.target.value }))}
+          />
+        </div>
         <textarea
           className="mt-4 w-full rounded-2xl border border-slate-300 px-3 py-2"
           rows="3"
           placeholder="Describe your latest round experience..."
-          value={experience}
-          onChange={(e) => setExperience(e.target.value)}
+          value={experienceForm.note}
+          onChange={(e) => setExperienceForm((current) => ({ ...current, note: e.target.value }))}
         />
-        <button className="mt-3 rounded-full bg-blue-600 px-4 py-2 text-white" onClick={() => { setSubmittedExperience(experience); setExperience(''); }}>
+        <button className="mt-3 rounded-full bg-blue-600 px-4 py-2 text-white" onClick={handleSubmitExperience}>
           Submit Experience
         </button>
         {submittedExperience ? <p className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">Latest update: {submittedExperience}</p> : null}
+      </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Briefcase size={18} className="text-blue-600" />
+          <h2 className="text-lg font-semibold">Company Details</h2>
+        </div>
+        <div className="mt-4 space-y-2">
+          {companyDetails.length ? companyDetails.slice(0, 5).map((company) => (
+            <div key={company._id} className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+              <p className="font-medium text-slate-900">{company.company} • {company.role || 'Role details'}</p>
+              <p>{company.package ? `Package: ${company.package}` : 'Package: Not specified'}</p>
+              <p>{company.description || company.eligibility || 'Company details are available for student preparation.'}</p>
+            </div>
+          )) : <p className="text-sm text-slate-500">No company details shared yet.</p>}
+        </div>
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -404,12 +458,13 @@ export default function StudentDashboard({ user }) {
           <h2 className="text-lg font-semibold">Coordinator Shared Experience</h2>
         </div>
         <div className="mt-4 space-y-2">
-          {sharedExperiences.map((entry, index) => (
-            <div key={index} className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
-              <p className="font-medium text-slate-900">{entry.drive}</p>
-              <p>{entry.note}</p>
+          {sharedExperiences.length ? sharedExperiences.map((entry) => (
+            <div key={entry._id || `${entry.company}-${entry.createdAt}`} className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+              <p className="font-medium text-slate-900">{entry.company}{entry.role ? ` • ${entry.role}` : ''}</p>
+              <p className="text-xs text-slate-500">Shared by {entry.studentName || entry.sharedBy?.name || 'Student'} • {new Date(entry.createdAt).toLocaleDateString('en-IN')}</p>
+              <p className="mt-2">{entry.note}</p>
             </div>
-          ))}
+          )) : <p className="text-sm text-slate-500">No interview experiences shared yet.</p>}
         </div>
       </div>
     </div>
