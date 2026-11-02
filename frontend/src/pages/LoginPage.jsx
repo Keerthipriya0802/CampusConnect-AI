@@ -7,7 +7,7 @@ import './LoginPage.css';
 
 const demoAccounts = [
   { label: 'Coordinator', email: 'demo.coordinator@campusconnect.ai', password: 'DemoCoordinator@123' },
-  { label: 'Testing login', email: 'keerthipriya.it@bitsathy.ac.in', password: 'keerthi' },
+  { label: 'Testing login', email: 'keerthipriya.it23@bitsathy.ac.in', password: 'keerthi' },
 ];
 
 export default function LoginPage({ setUser }) {
